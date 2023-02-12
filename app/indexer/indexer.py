@@ -23,14 +23,14 @@ class Indexer(object):
             'app.indexer.client',
             filter_func=lambda _, obj: hasattr(obj, 'schema')
         )
-        log.debug(f"【Indexer】: 已经加载的索引器：{self._indexer_schemas}")
+        log.debug(f"【Indexer】加载索引器：{self._indexer_schemas}")
         self.init_config()
 
     def init_config(self):
         self.progress = ProgressHelper()
         self._client_type = ModuleConf.INDEXER_DICT.get(
             Config().get_config("pt").get('search_indexer') or 'builtin'
-        )
+        ) or IndexerType.BUILTIN
         self._client = self.__get_client(self._client_type)
 
     def __build_class(self, ctype, conf):
@@ -114,7 +114,7 @@ class Indexer(object):
         return self._client_type
 
     def search_by_keyword(self,
-                          key_word,
+                          key_word: [str, list],
                           filter_args: dict,
                           match_media=None,
                           in_from: SearchType = None):

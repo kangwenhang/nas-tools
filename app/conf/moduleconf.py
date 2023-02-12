@@ -5,15 +5,20 @@ from app.utils.types import *
 class ModuleConf(object):
     # 菜单对应关系，配置WeChat应用中配置的菜单ID与执行命令的对应关系，需要手工修改
     # 菜单序号在https://work.weixin.qq.com/wework_admin/frame#apps 应用自定义菜单中维护，然后看日志输出的菜单序号是啥（按顺利能猜到的）....
-    # 命令对应关系：/ptt 下载文件转移；/ptr 删种；/pts 站点签到；/rst 目录同步；/rss RSS下载；/udt 系统更新
+    # 命令对应关系：/ptt 下载文件转移；/ptr 删种；/pts 站点签到；/rst 目录同步；/rst 豆瓣想看；/utf 重新识别；
+    # /ssa 订阅搜索；/tbl 清理转移缓存；/trh 清理RSS缓存；/rss RSS下载；/udt 系统更新
     WECHAT_MENU = {
         '_0_0': '/ptt',
         '_0_1': '/ptr',
         '_0_2': '/rss',
+        '_0_3': '/ssa',
         '_1_0': '/rst',
         '_1_1': '/db',
+        '_1_2': '/utf',
         '_2_0': '/pts',
-        '_2_1': '/udt'
+        '_2_1': '/udt',
+        '_2_2': '/tbl',
+        '_2_3': '/trh'
     }
 
     # 全量转移模式
@@ -41,13 +46,11 @@ class ModuleConf(object):
         "qbittorrent": DownloaderType.QB,
         "transmission": DownloaderType.TR,
         "client115": DownloaderType.Client115,
-        "aria2": DownloaderType.Aria2
+        "pikpak": DownloaderType.PikPak
     }
 
     # 索引器
     INDEXER_DICT = {
-        "prowlarr": IndexerType.PROWLARR,
-        "jackett": IndexerType.JACKETT,
         "builtin": IndexerType.BUILTIN
     }
 
@@ -192,6 +195,14 @@ class ModuleConf(object):
                         "title": "API Key",
                         "tooltip": "在Bark客户端中点击右上角的“...”按钮，选择“生成Bark Key”，然后将生成的KEY填入此处",
                         "type": "text"
+                    },
+                    "params": {
+                        "id": "bark_params",
+                        "required": False,
+                        "title": "附加参数",
+                        "tooltip": "添加到Bark通知中的附加参数，可用于自定义通知特性",
+                        "type": "text",
+                        "placeholder": "group=xxx&sound=xxx&url=xxx"
                     }
                 }
             },
@@ -290,6 +301,14 @@ class ModuleConf(object):
                         "tooltip": "在Slack中创建应用，获取App-Level Token",
                         "type": "text",
                         "placeholder": "xapp-xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx"
+                    },
+                    "channel": {
+                        "id": "slack_channel",
+                        "required": False,
+                        "title": "频道名称",
+                        "tooltip": "Slack中的频道名称，默认为全体；需要将机器人添加到该频道，以接收非交互类的通知消息",
+                        "type": "text",
+                        "placeholder": "全体"
                     }
                 }
             },
@@ -592,7 +611,7 @@ class ModuleConf(object):
             "background": "bg-azure",
             "test_command": "app.downloader.client.client115|Client115",
             "config": {
-                "trhost": {
+                "cookie": {
                     "id": "client115.cookie",
                     "required": True,
                     "title": "Cookie",
@@ -602,33 +621,35 @@ class ModuleConf(object):
                 }
             }
         },
-        "aria2": {
-            "name": "Aria2",
-            "img_url": "../static/img/aria2.png",
-            "background": "bg-green",
-            "test_command": "app.downloader.client.aria2|Aria2",
+        "pikpak": {
+            "name": "PikPak",
+            "img_url": "../static/img/pikpak.png",
+            "background": "bg-indigo",
+            "test_command": "app.downloader.client.pikpak|PikPak",
             "config": {
-                "host": {
-                    "id": "aria2.host",
+                "username": {
+                    "id": "pikpak.username",
                     "required": True,
-                    "title": "IP地址",
-                    "tooltip": "配置IP地址，如为https则需要增加https://前缀",
-                    "type": "text",
-                    "placeholder": "127.0.0.1"
-                },
-                "port": {
-                    "id": "aria2.port",
-                    "required": True,
-                    "title": "端口",
-                    "type": "text",
-                    "placeholder": "6800"
-                },
-                "secret": {
-                    "id": "aria2.secret",
-                    "required": True,
-                    "title": "令牌",
+                    "title": "用户名",
+                    "tooltip": "用户名",
                     "type": "text",
                     "placeholder": ""
+                },
+                "password": {
+                    "id": "pikpak.password",
+                    "required": True,
+                    "title": "密码",
+                    "tooltip": "密码",
+                    "type": "password",
+                    "placeholder": ""
+                },
+                "proxy": {
+                    "id": "pikpak.proxy",
+                    "required": False,
+                    "title": "代理",
+                    "tooltip": "如果需要代理才能访问pikpak可以在此处填入代理地址",
+                    "type": "text",
+                    "placeholder": "127.0.0.1:7890"
                 }
             }
         },
@@ -733,61 +754,125 @@ class ModuleConf(object):
     }
 
     # 索引器
-    INDEXER_CONF = {
-        "jackett": {
-            "name": "Jackett",
-            "img_url": "./static/img/jackett.png",
-            "background": "bg-black",
-            "test_command": "app.indexer.client.jackett|Jackett",
-            "config": {
-                "host": {
-                    "id": "jackett.host",
-                    "required": True,
-                    "title": "Jackett地址",
-                    "tooltip": "Jackett访问地址和端口，如为https需加https://前缀。注意需要先在Jackett中添加indexer，才能正常测试通过和使用",
-                    "type": "text",
-                    "placeholder": "http://127.0.0.1:9117"
-                },
-                "api_key": {
-                    "id": "jackett.api_key",
-                    "required": True,
-                    "title": "Api Key",
-                    "tooltip": "Jackett管理界面右上角复制API Key",
-                    "type": "text",
-                    "placeholder": ""
-                },
-                "password": {
-                    "id": "jackett.password",
-                    "required": False,
-                    "title": "密码",
-                    "tooltip": "Jackett管理界面中配置的Admin password，如未配置可为空",
-                    "type": "password",
-                    "placeholder": ""
-                }
+    INDEXER_CONF = {}
+
+    # 发现过滤器
+    DISCOVER_FILTER_CONF = {
+        "tmdb_movie": {
+            "with_genres": {
+                "name": "类型",
+                "type": "dropdown",
+                "options": [{'value': '', 'name': '全部'},
+                            {'value': '12', 'name': '冒险'},
+                            {'value': '16', 'name': '动画'},
+                            {'value': '35', 'name': '喜剧'},
+                            {'value': '80', 'name': '犯罪'},
+                            {'value': '18', 'name': '剧情'},
+                            {'value': '14', 'name': '奇幻'},
+                            {'value': '27', 'name': '恐怖'},
+                            {'value': '9648', 'name': '悬疑'},
+                            {'value': '10749', 'name': '爱情'},
+                            {'value': '878', 'name': '科幻'},
+                            {'value': '53', 'name': '惊悚'},
+                            {'value': '10752', 'name': '战争'}]
+            },
+            "with_original_language": {
+                "name": "语言",
+                "type": "dropdown",
+                "options": [{'value': '', 'name': '全部'},
+                            {'value': 'zh', 'name': '中文'},
+                            {'value': 'en', 'name': '英语'},
+                            {'value': 'ja', 'name': '日语'},
+                            {'value': 'ko', 'name': '韩语'},
+                            {'value': 'fr', 'name': '法语'},
+                            {'value': 'de', 'name': '德语'},
+                            {'value': 'ru', 'name': '俄语'},
+                            {'value': 'hi', 'name': '印地语'}]
             }
         },
-        "prowlarr": {
-            "name": "Prowlarr",
-            "img_url": "../static/img/prowlarr.png",
-            "background": "bg-orange",
-            "test_command": "app.indexer.client.prowlarr|Prowlarr",
-            "config": {
-                "host": {
-                    "id": "prowlarr.host",
-                    "required": True,
-                    "title": "Prowlarr地址",
-                    "tooltip": "Prowlarr访问地址和端口，如为https需加https://前缀。注意需要先在Prowlarr中添加搜刮器，同时勾选所有搜刮器后搜索一次，才能正常测试通过和使用",
-                    "type": "text",
-                    "placeholder": "http://127.0.0.1:9696"
-                },
-                "api_key": {
-                    "id": "prowlarr.api_key",
-                    "required": True,
-                    "title": "Api Key",
-                    "tooltip": "在Prowlarr->Settings->General->Security-> API Key中获取",
-                    "type": "text",
-                    "placeholder": ""
-                }
+        "tmdb_tv": {
+            "with_genres": {
+                "name": "类型",
+                "type": "dropdown",
+                "options": [{'value': '', 'name': '全部'},
+                            {'value': '10759', 'name': '动作冒险'},
+                            {'value': '16', 'name': '动画'},
+                            {'value': '35', 'name': '喜剧'},
+                            {'value': '80', 'name': '犯罪'},
+                            {'value': '99', 'name': '纪录'},
+                            {'value': '18', 'name': '剧情'},
+                            {'value': '10762', 'name': '儿童'},
+                            {'value': '9648', 'name': '悬疑'},
+                            {'value': '10764', 'name': '真人秀'},
+                            {'value': '10765', 'name': '科幻'}]
+            },
+            "with_original_language": {
+                "name": "语言",
+                "type": "dropdown",
+                "options": [{'value': '', 'name': '全部'},
+                            {'value': 'zh', 'name': '中文'},
+                            {'value': 'en', 'name': '英语'},
+                            {'value': 'ja', 'name': '日语'},
+                            {'value': 'ko', 'name': '韩语'},
+                            {'value': 'fr', 'name': '法语'},
+                            {'value': 'de', 'name': '德语'},
+                            {'value': 'ru', 'name': '俄语'},
+                            {'value': 'hi', 'name': '印地语'}]
+            }
+        },
+        "douban_movie": {
+            "sort": {
+                "name": "排序",
+                "type": "dropdown",
+                "options": [{'value': '', 'name': '默认'},
+                            {'value': 'U', 'name': '综合排序'},
+                            {'value': 'T', 'name': '首播时间'},
+                            {'value': 'S', 'name': '高分优先'},
+                            {'value': 'R', 'name': '近期热度'}]
+            },
+            "tags": {
+                "name": "类型",
+                "type": "dropdown",
+                "options": [{"value": "", "name": "全部"},
+                            {"value": "喜剧", "name": "喜剧"},
+                            {"value": "爱情", "name": "爱情"},
+                            {"value": "动作", "name": "动作"},
+                            {"value": "科幻", "name": "科幻"},
+                            {"value": "动画", "name": "动画"},
+                            {"value": "悬疑", "name": "悬疑"},
+                            {"value": "犯罪", "name": "犯罪"},
+                            {"value": "惊悚", "name": "惊悚"},
+                            {"value": "冒险", "name": "冒险"},
+                            {"value": "奇幻", "name": "奇幻"},
+                            {"value": "恐怖", "name": "恐怖"},
+                            {"value": "战争", "name": "战争"},
+                            {"value": "武侠", "name": "武侠"},
+                            {"value": "灾难", "name": "灾难"}]
+            }
+        },
+        "douban_tv": {
+            "sort": {
+                "name": "排序",
+                "type": "dropdown",
+                "options": [{'value': '', 'name': '默认'},
+                            {'value': 'U', 'name': '综合排序'},
+                            {'value': 'T', 'name': '首播时间'},
+                            {'value': 'S', 'name': '高分优先'},
+                            {'value': 'R', 'name': '近期热度'}]
+            },
+            "tags": {
+                "name": "地区",
+                "type": "dropdown",
+                "options": [{"value": "", "name": "全部"},
+                            {"value": "华语", "name": "华语"},
+                            {"value": "中国大陆", "name": "中国大陆"},
+                            {"value": "中国香港", "name": "中国香港"},
+                            {"value": "中国台湾", "name": "中国台湾"},
+                            {"value": "欧美", "name": "欧美"},
+                            {"value": "韩国", "name": "韩国"},
+                            {"value": "日本", "name": "日本"},
+                            {"value": "印度", "name": "印度"},
+                            {"value": "泰国", "name": "泰国"}]
             }
         }
     }

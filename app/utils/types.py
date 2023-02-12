@@ -12,7 +12,7 @@ class DownloaderType(Enum):
     QB = 'Qbittorrent'
     TR = 'Transmission'
     Client115 = '115网盘'
-    Aria2 = 'Aria2'
+    PikPak = 'PikPak'
 
 
 class SyncType(Enum):
@@ -58,8 +58,6 @@ class OsType(Enum):
 
 
 class IndexerType(Enum):
-    JACKETT = "Jackett"
-    PROWLARR = "Prowlarr"
     BUILTIN = "Indexer"
 
 
@@ -76,6 +74,7 @@ class BrushDeleteType(Enum):
     UPLOADSIZE = "上传量"
     DLTIME = "下载耗时"
     AVGUPSPEED = "平均上传速度"
+    IATIME = "未活动时间"
 
 
 # 站点框架
@@ -91,3 +90,7 @@ class SiteSchema(Enum):
     TorrentLeech = "TorrentLeech"
     FileList = "FileList"
     TNode = "TNode"
+
+
+MovieTypes = ['MOV', '电影']
+TvTypes = ['TV', '电视剧']

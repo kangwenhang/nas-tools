@@ -152,7 +152,7 @@ class SiteConf:
             'FREE': ["//h1[@id='top']/b/font[@class='free']"],
             '2XFREE': ["//h1[@id='top']/b/font[@class='twoupfree']"],
             'HR': [],
-            'PEER_COUNT': [],
+            'PEER_COUNT': ["//div[@id='peercount']/b[1]"],
         },
         'www.pttime.org': {
             'FREE': ["//h1[@id='top']/b/font[@class='free']", "//h1[@id='top']/b/font[@class='zeroupzerodown']"],
@@ -254,7 +254,7 @@ class SiteConf:
             'FREE': ["//h1[@id='top']/img[@class='pro_free']"],
             '2XFREE': [],
             'HR': ["//b[contains(text(),'H&R:')]"],
-            'PEER_COUNT': [],
+            'PEER_COUNT': ["//div[@id='peercount']/b[1]"],
         },
         'hdchina.org': {
             'RENDER': True,
@@ -477,72 +477,4 @@ class SiteConf:
         }
     }
     # 公共BT站点
-    PUBLIC_TORRENT_SITES = {
-        'rarbg.to': {
-            "parser": "Rarbg",
-            "proxy": True,
-            "language": "en"
-        },
-        'dmhy.org': {
-            "proxy": True
-        },
-        'eztv.re': {
-            "proxy": True,
-            "language": "en"
-        },
-        'acg.rip': {
-            "proxy": False
-        },
-        'thepiratebay.org': {
-            "proxy": True,
-            "render": True,
-            "language": "en"
-        },
-        'nyaa.si': {
-            "proxy": True
-        },
-        '1337x.to': {
-            "proxy": True,
-            "language": "en"
-        },
-        'ext.to': {
-            "proxy": True,
-            "language": "en",
-            "parser": "RenderSpider"
-        },
-        'torrentgalaxy.to': {
-            "proxy": True,
-            "language": "en"
-        },
-        'mikanani.me': {
-            "proxy": False
-        },
-        'gaoqing.fm': {
-            "proxy": False
-        },
-        'www.mp4ba.vip': {
-            "proxy": False,
-            "referer": True
-        },
-        'www.miobt.com': {
-            "proxy": True
-        },
-        'katcr.to': {
-            "proxy": True,
-            "language": "en"
-        },
-        'btsow.quest': {
-            "proxy": True
-        },
-        'www.hdpianyuan.com': {
-            "proxy": False
-        },
-        'skrbtfi.top': {
-            "proxy": False,
-            "referer": True,
-            "parser": "RenderSpider"
-        },
-        'www.comicat.org': {
-            "proxy": False
-        }
-    }
+    PUBLIC_TORRENT_SITES = {}
